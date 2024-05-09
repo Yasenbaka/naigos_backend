@@ -49,7 +49,7 @@ def handle_login(bot_appid: str, rule: str = 'login', **kwargs):
     bot.save()
     return JsonResponse({
         'code': CodeStatus().BasicCommunication().UserArchive().USER_ARCHIVE_LOGIN_SUCCESS[0],
-        'message': f"登入成功！自本次签发起，请求令牌有效期{get_access_token_lifetime / (3600 * 24)}天，"
+        'message': f"登入成功！本次签发，请求令牌有效期{get_access_token_lifetime / (3600 * 24)}天，"
                    f"{refresh_token_text}",
         'data': {
             'access_token': access_token,
