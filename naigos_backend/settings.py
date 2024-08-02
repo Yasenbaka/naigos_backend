@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-hblz!^ww!tts$322*t6as%2xg^#!t*cz=fb@50_^#i=jsdm&c8
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 
 # Application definition
@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'corsheaders',
     'api.apps.ApiConfig',
     'users',
     'bots',
@@ -61,7 +62,7 @@ SIMPLE_JWT = {
     'ROTATE_REFRESH_TOKENS': False,
     'BLACKLIST_AFTER_ROTATION': True,
     'ALGORITHM': 'HS256',
-    'SIGNING_KEY': 'qxy20240409',
+    'SIGNING_KEY': 'miaoyunaigosbotnokashi',
     'VERIFYING_KEY': None,
     # 'AUTH_HEADER_TYPES': ('Bearer',),
     'AUTH_HEADER_TYPES': (),
@@ -163,3 +164,7 @@ STATIC_URL = 'static/'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+CORS_ALLOW_CREDENTIALS = True
+CORS_ORIGIN_ALLOW_ALL = True
+CORS_ORIGIN_WHITELIST = ()

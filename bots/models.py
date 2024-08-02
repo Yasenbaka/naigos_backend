@@ -5,6 +5,6 @@ from django.db import models
 
 class Bots(models.Model):
     bot_appid = models.BigIntegerField()
-    access_token = models.TextField()
-    refresh_token = models.TextField()
+    token = models.TextField(default='token')
+    password = models.TextField(default='<PASSWORD>')
     safe_level = models.IntegerField(default=10)
