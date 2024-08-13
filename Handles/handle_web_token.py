@@ -1,8 +1,7 @@
 from django.conf import settings
-from Constants.code_status import CodeStatus
 import jwt
 
-from bots.models import Bots
+from users.models import Users
 
 SIGNING_KEY = settings.SIMPLE_JWT['SIGNING_KEY']
 ALGORITHM = settings.SIMPLE_JWT['ALGORITHM']
@@ -10,7 +9,7 @@ ALGORITHM = settings.SIMPLE_JWT['ALGORITHM']
 
 def handle_token(token: str) -> dict:
     try:
-        decode_token = jwt.decode(token, SIGNING_KEY, algorithms=[ALGORITHM])
+        decoded = jwt.decode(token, SIGNING_KEY, algorithms=[ALGORITHM])
     except jwt.exceptions.ExpiredSignatureError:
         return {
             'code': 1,
@@ -32,33 +31,31 @@ def handle_token(token: str) -> dict:
             'message': '令牌严重错误！'
         }
     else:
-        # 请求令牌合法后的一些细节处理
-        appid = decode_token['appid']
+        if decoded['source'] != 'web':
+            return {
+                'code': 1,
+                'message': '非Web渠道的令牌来源！'
+            }
+        uuid = decoded['uuid']
         try:
-            bots = Bots.objects.get(bot_appid=appid)
-        except Bots.DoesNotExist:
+            users = Users.objects.get(group_real_user_id=uuid)
+        except Users.DoesNotExist:
             return {
                 'code': 1,
-                'message': '该Bot信息不存在！'
+                'message': '该用户UUID信息不存在！'
             }
-        if bots.safe_level == 0:
+        if users.safe_level == 0:
             return {
                 'code': 1,
-                'message': '该Bot令牌安全等级：低，需要管理员重新登录！'
+                'message': '用户安全等级高危，请重新登录！'
             }
-        if bots.safe_level < 0:
+        if users.safe_level < 0:
             return {
                 'code': 1,
-                'message': '该BotAppid已被奶果服务冻结！'
-            }
-        db_token = bots.token
-        if token != db_token:
-            bots.safe_level = 0
-            return {
-                'code': 1,
-                'message': '令牌合法，但已经危险！'
+                'message': '用户档案已被冻结，网站端无法使用，请申诉解冻！'
             }
         return {
             'code': 0,
             'message': '令牌合法，安全！'
         }
+

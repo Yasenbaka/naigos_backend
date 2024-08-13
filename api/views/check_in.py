@@ -5,7 +5,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 
-from Handles.handle_token import handle_token
+from Handles.handle_bot_token import handle_token
 from users.models import Users, Judges
 
 

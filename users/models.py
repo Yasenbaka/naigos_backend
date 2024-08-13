@@ -1,3 +1,4 @@
+import uuid
 from django.db import models
 
 
@@ -17,6 +18,15 @@ class Users(models.Model):
         null=False,
         blank=False
     )
+    safe_level = models.IntegerField(default=10)
+
+
+class Password(models.Model):
+    uuid = models.UUIDField()
+    password = models.CharField(max_length=255, null=True, blank=True)
+    code = models.CharField(max_length=6, null=True, blank=True)
+    is_code = models.BooleanField(default=False)
+    expiration_date = models.BigIntegerField(null=True, blank=True)
 
 
 class Judges(models.Model):

@@ -16,7 +16,7 @@ def handle_login(bot_appid: str, rule: str = 'bot', **kwargs) -> JsonResponse:
     token_payload = {
         'appid': bot_appid,
         'exp': int(time.time()) + ACCESS_TOKEN_LIFETIME,
-        'rule': rule
+        'source': rule
     }
     token = jwt.encode(headers=token_header, payload=token_payload, key=SIGNING_KEY, algorithm=ALGORITHM)
     bots = Bots.objects.get(bot_appid=bot_appid)
