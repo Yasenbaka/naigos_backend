@@ -13,35 +13,45 @@ from users.models import Users, Password
 SIGNING_KEY = settings.SIMPLE_JWT['SIGNING_KEY']
 
 
+def handle_login_use(target):
+    if '@' in target:
+        try:
+            users = Users.objects.get(email=target)
+        except Users.DoesNotExist:
+            return {
+                'code': 1,
+                'message': '未找到用户邮箱！'
+            }
+    elif len(target) == 11:
+        try:
+            users = Users.objects.get(phone=target)
+        except Users.DoesNotExist:
+            return {
+                'code': 1,
+                'message': '未找到用户手机号！'
+            }
+    else:
+        try:
+            users = Users.objects.get(id=target)
+        except Users.DoesNotExist:
+            return {
+                'code': 1,
+                'message': '未找到用户ID！'
+            }
+    return {
+        'code': 0,
+        'users': users,
+    }
+
+
 @require_http_methods(['POST'])
 @csrf_exempt
 def user_login(request) -> JsonResponse:
-    account = request.POST.get('account')
     login_type = request.POST.get('login_type')
-    if '@' in account:
-        try:
-            users = Users.objects.get(email=account)
-        except Users.DoesNotExist:
-            return JsonResponse({
-                'code': 1,
-                'message': '未找到用户邮箱！'
-            })
-    elif len(account) == 11:
-        try:
-            users = Users.objects.get(phone=account)
-        except Users.DoesNotExist:
-            return JsonResponse({
-                'code': 1,
-                'message': '未找到用户手机号！'
-            })
-    else:
-        try:
-            users = Users.objects.get(id=account)
-        except Users.DoesNotExist:
-            return JsonResponse({
-                'code': 1,
-                'message': '未找到用户ID！'
-            })
+    de_account = handle_login_use(request.POST.get('account'))
+    if de_account['code'] != 0:
+        return JsonResponse(de_account)
+    users = de_account['users']
     uuid = users.group_real_user_id
     if login_type == 'normal':
         password = request.POST.get('password')
@@ -82,3 +92,34 @@ def user_login(request) -> JsonResponse:
         'code': 1,
         'message': '未知的登录方式！'
     })
+
+
+@require_http_methods(['POST'])
+@csrf_exempt
+def nopwd_login(request) -> JsonResponse:
+    de_account = handle_login_use(request.POST.get('account'))
+    if de_account['code'] != 0:
+        return JsonResponse(de_account)
+    users = de_account['users']
+    uuid = users.group_real_user_id
+    password_model = Password.objects.get(uuid=uuid)
+    if password_model.code != request.POST.get('code'):
+        return JsonResponse({
+            'code': 1,
+            'message': '验证码不正确！'
+        })
+    if not password_model.is_code:
+        return JsonResponse({
+            'code': 1,
+            'message': '验证码未验证！'
+        })
+    if password_model.expiration_date < int(time.time()):
+        return JsonResponse({
+            'code': 1,
+            'message': '验证码已过期！'
+        })
+    (password_model.is_code,
+     password_model.code,
+     password_model.expiration_date) = (False, None, None)
+    password_model.save()
+    return handle_web_login.handle_login(users.group_real_user_id, rule='web')

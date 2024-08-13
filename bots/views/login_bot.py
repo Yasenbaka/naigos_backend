@@ -4,11 +4,7 @@ from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_http_methods
 from django.conf import settings
-
-from Constants.code_status import CodeStatus
-from Handles.handle_exchange_token_issue import handle_exchange_token_issue
 from Handles.handle_bot_login import handle_login
-from Handles.handle_bot_token import handle_token
 from bots.models import Bots
 
 
