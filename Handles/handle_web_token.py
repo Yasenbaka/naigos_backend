@@ -56,6 +56,7 @@ def handle_token(token: str) -> dict:
             }
         return {
             'code': 0,
-            'message': '令牌合法，安全！'
+            'message': '令牌合法，安全！',
+            'data': uuid
         }
 

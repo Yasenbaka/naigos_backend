@@ -13,6 +13,11 @@ def signup(request):
     if is_token['code'] == 1:
         return JsonResponse(is_token)
     qq_id, real_user_id = request.POST.get('qq_id'), request.POST.get('real_user_id')
+    if not qq_id or not real_user_id:
+        return JsonResponse({
+            'code': 1,
+            'message': '缺少必要的参数！'
+        })
     print(qq_id, real_user_id)
     try:
         Users.objects.get(qq_id=qq_id)
