@@ -8,6 +8,7 @@ from django.views.decorators.http import require_http_methods
 from django.conf import settings
 
 from Handles import handle_web_login
+from Handles.handle_bot_token import handle_token
 from users.models import Users, Password
 
 SIGNING_KEY = settings.SIMPLE_JWT['SIGNING_KEY']
@@ -123,3 +124,44 @@ def nopwd_login(request) -> JsonResponse:
      password_model.expiration_date) = (False, None, None)
     password_model.save()
     return handle_web_login.handle_login(users.group_real_user_id, rule='web')
+
+
+@require_http_methods(['POST'])
+@csrf_exempt
+def nopwd_bot_check(request):
+    is_token = handle_token(request.headers['Authorization'])
+    uuid = request.POST.get('real_user_id')
+    bot_get_code = request.POST.get('code')
+    if is_token['code'] == 1:
+        return JsonResponse(is_token)
+    try:
+        password_model = Password.objects.get(uuid=uuid)
+    except Password.DoesNotExist:
+        return JsonResponse({
+            'code': 1,
+            'message': '没有找到档案对应验证码！'
+        })
+    if password_model.is_code:
+        return JsonResponse({
+            'code': 1,
+            'message': '验证码被验证过，请在有效期内使用！'
+        })
+    if not password_model.code:
+        return JsonResponse({
+            'code': 1,
+            'message': '没有验证码！'
+        })
+    if password_model.code == bot_get_code:
+        password_model.is_code = True
+        password_model.save()
+        return JsonResponse({
+            'code': 0,
+            'message': '验证码成功验证！请在有效期内使用！'
+        })
+    password_model.code, password_model.is_code, password_model.expiration_date = None, False, None
+    password_model.save()
+    return JsonResponse({
+        'code': 1,
+        'message': '验证码各项不匹配，请重新获取验证码，多次不匹配可能会降低档案安全等级或冻结档案！'
+    })
+
